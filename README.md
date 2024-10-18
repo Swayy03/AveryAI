@@ -6,4 +6,4 @@ read text aloud, and provide directions, creating a more inclusive and accessibl
 
 Link to the pitch deck video
 
-https://github.com/user-attachments/assets/47326550-3d4b-45a0-b9b6-2f2c7ca95b2d
+https://github.com/user-attachments/assets/71690a2a-6a53-44c1-a7fd-802be19e98bf
