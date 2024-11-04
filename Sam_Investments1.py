@@ -6,12 +6,14 @@ import customtkinter as ctk
 import cv2
 # import AveryAI
 import psycopg2
+from psycopg2 import sql
 from PIL import Image
 
 import forms
 import payment
 import sms
 from postgresDatabase import MyDatabase
+from sms import conn_obj
 
 cap = cv2.VideoCapture(0)
 
@@ -41,6 +43,10 @@ class MyGui:
 
 
         # functions
+
+
+
+
         def authenticate(username, password):
             k = True
             try:
@@ -49,7 +55,8 @@ class MyGui:
                 k = False
             finally:
                 if k:
-                    conn_obj.close()
+                    pass
+                    #conn_obj.close()
                 return k
 
 
@@ -64,6 +71,7 @@ class MyGui:
 
             if authenticate(self.user, self.password):
                 self.errormessage.configure(text="Connected Successfully", text_color="Green")
+                #startup()
                 self.mainframe.pack(fill="both", expand=True)
                 self.loginframe.forget()
             else:
@@ -126,13 +134,20 @@ class MyGui:
             self.conn_obj = psycopg2.connect(user=MyDatabase.username, password=MyDatabase.pwd,
                                              host=MyDatabase.hostname,
                                              database='SamInvestments')
+            create_query1 = '''
+                CREATE TABLE IF NOT EXISTS tenantinfo(
+                    tenant_id SERIAL PRIMARY KEY, 
+                    first_name VARCHAR(255) NOT NULL, 
+                    last_name VARCHAR(255), 
+                    house_no VARCHAR(5)
+                );
+            '''
+            self.conn_obj.autocommit = True
             self.cur_object = self.conn_obj.cursor()
-
-            self.cur_object.execute(
-                'CREATE TABLE IF NOT EXISTS tenantinfo(tenant_id SERIAL PRIMARY KEY, first_name VARCHAR(255) NOT NULL, last_name VARCHAR(255), house_no VARCHAR(5));')
-            self.cur_object.execute(
-                'CREATE TABLE IF NOT EXISTS payments(pay_id SERIAL PRIMARY KEY, pay_reason VARCHAR(455) NOT NULL, pay_amount INTEGER, pay_date TIMESTAMP);')
             self.cur_object.execute('SELECT message_id FROM messages')
+            self.cur_object.execute(create_query1)
+            self.conn_obj.commit()
+            print("Something is fishy here :(")
             message_ids = self.cur_object.fetchall()
             self.cur_object.execute('SELECT message_title FROM messages')
             message_titles = self.cur_object.fetchall()
@@ -203,6 +218,10 @@ class MyGui:
                 self.tenant_table.delete(item)
             self.conn_obj = psycopg2.connect(user=MyDatabase.username, password=MyDatabase.pwd, host=MyDatabase.hostname, database='SamInvestments')
             self.cur_object = self.conn_obj.cursor()
+            self.cur_object.execute(
+                'CREATE TABLE IF NOT EXISTS tenantinfo(tenant_id SERIAL PRIMARY KEY, first_name VARCHAR(255) NOT NULL, last_name VARCHAR(255), house_no VARCHAR(5));')
+            self.cur_object.execute(
+                'CREATE TABLE IF NOT EXISTS payments(pay_id SERIAL PRIMARY KEY, pay_reason VARCHAR(455) NOT NULL, pay_amount INTEGER, pay_date TIMESTAMP);')
             self.cur_object.execute('SELECT tenant_id FROM tenantinfo')
             tenant_ids = self.cur_object.fetchall()
             self.cur_object.execute('SELECT first_name FROM tenantinfo')
